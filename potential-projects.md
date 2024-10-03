@@ -30,4 +30,4 @@
 ## C-lite to JVM Byte Code
 1. Formmalize lightweight C language (with variables, pointers, assignments, while loop, and function calls) in Coq. Define its operationsl semantics.
 2. Formalize an equivalent subtset of JVM instructions and define its operational semantics.
-3. write a "compiler" from C-lite to JVM. Prove its correctness by showing the observational equivalence (bi-simulation) of source (C-lite) and target programs (JVM).
+3. write a "compiler" from C-lite to JVM. Prove its correctness by showing the observational equivalence [(bi-simulation)](https://en.wikipedia.org/wiki/Bisimulation) of source (C-lite) and target programs (JVM).
