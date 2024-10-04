@@ -39,8 +39,7 @@ Proof.
          we need an m that scales with n
      *)
     induction n as [| n' IHn'].
-    - intros m H. simpl in H.
-      destruct m.
+    - intros m H. simpl in H. destruct m.
         + reflexivity.
         + discriminate.
     - intros m H. simpl in H. destruct m.
@@ -61,11 +60,21 @@ Fixpoint is_even (n:nat): bool :=
         | S n' => is_even(n')
         end.
 
+Fixpoint div_by_2(n: nat) : nat :=
+match n with
+| 0 => 0
+| S 0 => 0
+| S( S n) => S (div_by_2 n) 
+end.
 (* this is to demonstrate *)
 (* should be harder next lecture will discuss *)
 Theorem is_even_bla: forall (n:nat),
-    is_even(S (S n)) = true -> is_even n = true.
+    is_even n = true -> (is_even (div_by_2 n) = true \/ is_odd(div_by_2 n) = true).
 Proof.
-    simpl. intros.
-    exact H.
+    intros n.
+    induction  n.
+    - intros H. simpl. left. reflexivity.
+    - intros H. destruct n.
+        + simpl. left. reflexivity.
+        + left. simpl. 
     Qed.
