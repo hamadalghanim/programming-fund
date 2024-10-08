@@ -41,20 +41,20 @@ Print Even2.
 (* 
     ev n : natural number n is even
 
-        -               ev n
+        -                       ev n
     ------- [ev_0]       --------------- [ev_ss]
-      ev 0          ev (S (S n))
+      ev 0                 ev (S (S n))
  *)
  (*
 
-        ------------ [ev_0]
-             ev 0
+        ---------- [ev_0]
+            ev 0
         ---------- [ev_ss]
             ev 2
-        --------- [ev_ss]
-          ev 4
+        ---------- [ev_ss]
+            ev 4
   *)
-
+(* this is how we declare propositions inductively *)
 Inductive ev: nat -> Prop :=
     | ev_0: ev 0
     | ev_SS: forall n:nat, ev n -> ev(S (S n)).
@@ -88,6 +88,4 @@ Proof.
     induction H as [| n' Hn IHn].
         + simpl. apply ev_0.
         + simpl. repeat apply ev_SS. assumption.
-Qed.  
-
-
+Qed.
