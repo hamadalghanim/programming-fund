@@ -16,8 +16,7 @@
 `Proof` i stated when we want to specify the proof types such as:
 
 - `simpl.` simplify the term
--
-- `reflexivity.` checks if lhs = rhs
+- `reflexivity.` checks if lhs = rhs, sometimes it will simplify and try to unfold the term
 - `Qed.` ending the proof
 
 for more info we can check this [cheat sheet](https://www.cs.cornell.edu/courses/cs3110/2018sp/a5/coq-tactics-cheatsheet.html)
