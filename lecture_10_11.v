@@ -166,11 +166,14 @@ Fixpoint optimize_0plus (a : aexp) : aexp :=
     end.
 
 Example test_optimize_0plus:
-    optimize_0plus (APlus (ANum 2) (ANum 0)) = ANum 2.
+    optimize_0plus (APlus (ANum 2) (APlus (ANum 0)( ANum 1))) = APlus (ANum 2) (ANum 1).
 Proof. reflexivity. Qed.
+
 
 Theorem optimize_0plus_sound: forall a,
     aeval (optimize_0plus a) = aeval a.
 Proof.
-    Admitted.
-    
+    intros a. induction a.
+    - (* ANum *) reflexivity.
+    - (* Aplus *) destruct a1 eqn:E1.
+        * simpl in IHa1. rewrite IHa1.
