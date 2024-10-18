@@ -10,6 +10,21 @@ Inductive ev : nat -> Prop :=
 Check (fun n (H:ev n) => Nat.div n 2).
 (* can be n -> ev n -> nat *)
 
+Theorem false_impl : forall (P : Prop), P -> ~~P.
+Proof.
+  intros P H1 H2.
+  apply H2 in H1.
+  contradiction.
+Qed.
+Fixpoint beq_nat(a b: nat): bool :=
+match a, b with
+| S a', S b' => beq_nat a' b'
+| 0, 0 => true
+| _, _ => false
+end.
+
+Check beq_nat.
+
 Check fun (X:Type) (Y:Type) (f: X -> Y) (x:X) => f x.
 (* X:Type -> Y:Type -> (X -> Y) -> X -> Y *)
 
@@ -30,18 +45,9 @@ From Coq Require Import List.
                 x ∈ l
 
  *)
-Inductive In {A:Type} : A -> list A -> Prop :=
-    | x_head: forall(x:A)(l t: list A), (l = x::t) -> In x l
-    | x_tail: forall(x h :A)(l t: list A), (l = h::t) -> In x t -> In x l.
-
 
 Import ListNotations.
-Example in_ex: In 3 [1;2;3;4].
-Proof.
-    apply x_tail with (h:=1)(t:=[2;3;4]). reflexivity.
-    apply x_tail with (h:=2)(t:=[3;4]). reflexivity.
-    apply x_head with (t:=[4]). reflexivity.
-Qed.
+
 
 
 
@@ -231,3 +237,71 @@ Proof.
     - lia.
     - rewrite H. apply IHn.
     Qed.
+
+
+(*
+Define an inductive proposition sorted that holds if a list of natural 
+numbers is sorted in non-decreasing order. 
+*)
+
+(*
+    len(l) is empty
+    -----------------
+        is_sorted l
+
+    len(l) == 1
+-----------------
+    is_sorted l
+
+ l = h1::t1 t1 = h2::t2 if h1 < h2 is_sorted t1 
+-----------------
+    is_sorted l
+*)
+
+
+Inductive is_sorted : list nat -> Prop :=
+| empty : is_sorted []
+| single : forall x, is_sorted [x]
+| default : forall h1 h2 t, h1 <= h2 -> is_sorted (h2 :: t) -> is_sorted (h1 :: h2 :: t).
+
+
+
+Example srt: is_sorted [1;2;4].
+Proof.
+    apply default. lia.
+    apply default. lia.
+    apply single.
+Qed.
+
+(* 
+        []
+    ----------- [pal_empty]
+        pal l
+
+        [x]
+    ---------- [pal_one]
+        pal l
+
+    l=h_el::t, t=h2 ++ [t_el], t_el=h_el  pal h2
+    --------------------------------------- [pal_snoc]
+            pal l
+ *)
+
+
+Inductive pal_2 {X: Type}: list X -> Prop:=
+|pal_empty: pal_2 []
+|pal_one: forall x, pal_2 [x]
+|pal_snoc: forall (h_el t_el: X) (h2: list X), h_el=t_el -> pal_2 h2 -> pal_2 (h_el::(h2 ++ [t_el])).
+
+
+Theorem ex: pal_2 [1;2;3;4;3;2;1].
+Proof.
+    apply pal_snoc with (h_el:=1) (t_el:=1)(h2:= [2;3;4;3;2]).
+    reflexivity.
+    apply pal_snoc with (h_el:=2) (t_el:=2)(h2:= [3;4;3]).
+    reflexivity.
+    apply pal_snoc with (h_el:=3) (t_el:=3)(h2:= [4]).
+    reflexivity.
+    apply pal_one.
+Qed.
+    

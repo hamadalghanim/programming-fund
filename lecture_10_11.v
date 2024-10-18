@@ -171,9 +171,25 @@ Proof. reflexivity. Qed.
 
 
 Theorem optimize_0plus_sound: forall a,
-    aeval (optimize_0plus a) = aeval a.
+  aeval (optimize_0plus a) = aeval a.
 Proof.
-    intros a. induction a.
-    - (* ANum *) reflexivity.
-    - (* Aplus *) destruct a1 eqn:E1.
-        * simpl in IHa1. rewrite IHa1.
+  intros a. induction a.
+  - (* ANum *) reflexivity.
+  - (* APlus *) destruct a1 eqn:Ea1.
+    + (* a1 = ANum n *) destruct n eqn:En.
+      * (* n = 0 *) simpl. apply IHa2.
+      * (* n <> 0 *) simpl. destruct a2 eqn:Ea2.
+        -- simpl.  
+    + (* a1 = APlus a1_1 a1_2 *)
+      simpl. simpl in IHa1. rewrite IHa1.
+      rewrite IHa2. reflexivity.
+    + (* a1 = AMinus a1_1 a1_2 *)
+      simpl. simpl in IHa1. rewrite IHa1.
+      rewrite IHa2. reflexivity.
+    + (* a1 = AMult a1_1 a1_2 *)
+      simpl. simpl in IHa1. rewrite IHa1.
+      rewrite IHa2. reflexivity.
+  - (* AMinus *)
+    simpl. rewrite IHa1. rewrite IHa2. reflexivity.
+  - (* AMult *)
+    simpl. rewrite IHa1. rewrite IHa2. reflexivity. Qed.
