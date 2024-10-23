@@ -170,7 +170,7 @@ Example test_optimize_0plus:
 Proof. reflexivity. Qed.
 
 
-Theorem optimize_0plus_sound: forall a,
+(* Theorem optimize_0plus_sound: forall a,
   aeval (optimize_0plus a) = aeval a.
 Proof.
   intros a. induction a.
@@ -179,7 +179,7 @@ Proof.
     + (* a1 = ANum n *) destruct n eqn:En.
       * (* n = 0 *) simpl. apply IHa2.
       * (* n <> 0 *) simpl. destruct a2 eqn:Ea2.
-        -- simpl.  
+        -- simpl. apply IHa2.
     + (* a1 = APlus a1_1 a1_2 *)
       simpl. simpl in IHa1. rewrite IHa1.
       rewrite IHa2. reflexivity.
@@ -192,4 +192,98 @@ Proof.
   - (* AMinus *)
     simpl. rewrite IHa1. rewrite IHa2. reflexivity.
   - (* AMult *)
-    simpl. rewrite IHa1. rewrite IHa2. reflexivity. Qed.
+    simpl. rewrite IHa1. rewrite IHa2. reflexivity. Qed. *)
+
+
+
+(* 
+    defining the operations inductively
+
+        n=m
+     ---------- [E_aNum]
+      ANum n ==> m
+
+        e1 ==> n1   e2==>=> n2
+    ----------------------------- [E_aPlus]
+     aPlus e1 e2 ==> n1 + n2
+
+        e1 ==> n1   e2 ==> n2
+    ----------------------------- [E_aMinus]
+     aMinus e1 e2 ==> n1 - n2
+
+        e1 ==> n1   e2 ==> n2
+    ----------------------------- [E_aMult]
+     aMult e1 e2 ==> n1 * n2
+ *)
+
+
+Reserved Notation "e '==>' n" (at level 90, left associativity).
+
+
+Inductive aevalR : aexp -> nat -> Prop :=
+  | E_ANum (n : nat) :
+      (ANum n) ==> n
+  | E_APlus (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 ==> n1) -> (e2 ==> n2) -> (APlus e1 e2)  ==> (n1 + n2)
+  | E_AMinus (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 ==> n1) -> (e2 ==> n2) -> (AMinus e1 e2) ==> (n1 - n2)
+  | E_AMult (e1 e2 : aexp) (n1 n2 : nat) :
+      (e1 ==> n1) -> (e2 ==> n2) -> (AMult e1 e2)  ==> (n1 * n2)
+
+  where "e '==>' n" := (aevalR e n) : type_scope.
+
+Theorem aeval_iff_aevalR : forall a n,
+  (a ==> n) <-> aeval a = n.
+Proof.
+  split.
+  - (* -> *)
+    intros H.
+    induction H; simpl.
+    + (* E_ANum *)
+      reflexivity.
+    +  (* E_APlus *)
+      rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+    + (* E_AMinus *)
+      rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+    + (* E_AMult *)
+      rewrite IHaevalR1. rewrite IHaevalR2. reflexivity.
+  - (* <- *)
+    generalize dependent n.
+    induction a;
+       simpl; intros; subst.
+    + (* ANum *)
+      apply E_ANum.
+    + (* APlus *)
+      apply E_APlus.
+      * apply IHa1. reflexivity.
+      * apply IHa2. reflexivity.
+    + (* AMinus *)
+      apply E_AMinus.
+      * apply IHa1. reflexivity.
+      * apply IHa2. reflexivity.
+    + (* AMult *)
+      apply E_AMult.
+      * apply IHa1. reflexivity.
+      * apply IHa2. reflexivity.
+Qed.
+
+Theorem aeval_iff_aevalR' : forall a n,
+  (a ==> n) <-> aeval a = n.
+Proof.
+  (* WORKED IN CLASS *)
+  split.
+  - (* -> *)
+    intros H; induction H; subst; reflexivity.
+  - (* <- *)
+    generalize dependent n.
+    induction a; simpl; intros; subst; constructor;
+       try apply IHa1; try apply IHa2; reflexivity.
+Qed.
+
+(* 
+https://www.cs.princeton.edu/courses/archive/spring21/cos510/sf/lf/Imp.v
+
+-> this diraction is soundness
+<- this direction is completeness
+
+ *)
