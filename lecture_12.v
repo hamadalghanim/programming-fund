@@ -9,6 +9,7 @@ From Coq Require Import Lists.List.
 From Coq Require Import Strings.String.
 Import ListNotations.
 Open Scope string_scope.
+From LF Require Import Maps.
 
 
 
@@ -71,6 +72,8 @@ Inductive bexp : Type :=
   | BFalse
   | BEq (a1 a2 : aexp)
   | BLe (a1 a2 : aexp)
+  | BNeq (a1 a2 : aexp)
+  | BGt (a1 a2 : aexp)
   | BNot (b : bexp)
   | BAnd (b1 b2 : bexp).
 
@@ -95,13 +98,13 @@ Inductive bexp : Type :=
          defining _new_ interpretations for some familiar operators
          like [+], [-], [*], [=], [<=], etc., when they occur between
          [<{] and [}>]. *)
-
 Coercion AId : string >-> aexp.
 Coercion ANum : nat >-> aexp.
-
 Declare Custom Entry com.
 Declare Scope com_scope.
-Notation "<{ e }>" := e (at level 0, e custom com at level 99) : com_scope.
+Declare Custom Entry com_aux.
+Notation "<{ e }>" := e (e custom com_aux) : com_scope.
+Notation "e" := e (in custom com_aux at level 0, e custom com) : com_scope.
 Notation "( x )" := x (in custom com, x at level 99) : com_scope.
 Notation "x" := x (in custom com at level 0, x constr at level 0) : com_scope.
 Notation "f x .. y" := (.. (f x) .. y)
@@ -111,15 +114,16 @@ Notation "f x .. y" := (.. (f x) .. y)
 Notation "x + y" := (APlus x y) (in custom com at level 50, left associativity).
 Notation "x - y" := (AMinus x y) (in custom com at level 50, left associativity).
 Notation "x * y" := (AMult x y) (in custom com at level 40, left associativity).
-Notation "'true'"  := true (at level 1).
-Notation "'true'"  := BTrue (in custom com at level 0).
-Notation "'false'"  := false (at level 1).
-Notation "'false'"  := BFalse (in custom com at level 0).
+Notation "'true'" := true (at level 1).
+Notation "'true'" := BTrue (in custom com at level 0).
+Notation "'false'" := false (at level 1).
+Notation "'false'" := BFalse (in custom com at level 0).
 Notation "x <= y" := (BLe x y) (in custom com at level 70, no associativity).
-Notation "x = y"  := (BEq x y) (in custom com at level 70, no associativity).
+Notation "x > y" := (BGt x y) (in custom com at level 70, no associativity).
+Notation "x = y" := (BEq x y) (in custom com at level 70, no associativity).
+Notation "x <> y" := (BNeq x y) (in custom com at level 70, no associativity).
 Notation "x && y" := (BAnd x y) (in custom com at level 80, left associativity).
-Notation "'~' b"  := (BNot b) (in custom com at level 75, right associativity).
-
+Notation "'~' b" := (BNot b) (in custom com at level 75, right associativity).
 Open Scope com_scope.
 Definition example_aexp : aexp := <{ 3 + (X * 2) }>.
 Definition example_bexp : bexp := <{ true && ~(X <= 4) }>.
@@ -154,14 +158,17 @@ Fixpoint aeval (st : state) (a : aexp) : nat :=
   | <{a1 * a2}> => (aeval st a1) * (aeval st a2)
   end.
 (* dunno why this doesnt work *)
-Fixpoint beval (st : state) (b : bexp) : bool :=
+Fixpoint beval (st : state) (* <--- NEW *)
+               (b : bexp) : bool :=
   match b with
-  | <{true}>      => true
-  | <{false}>     => false
-  | <{a1 = a2}>   => (aeval st a1) =? (aeval st a2)
-  | <{a1 <= a2}>  => (aeval st a1) <=? (aeval st a2)
-  | <{~ b1}>      => negb (beval st b1)
-  | <{b1 && b2}>  => andb (beval st b1) (beval st b2)
+  | <{true}> => true
+  | <{false}> => false
+  | <{a1 = a2}> => (((aeval st) a1) =? (aeval st a2))
+  | <{a1 <> a2}> => negb ((aeval st a1) =? (aeval st a2))
+  | <{a1 <= a2}> => (aeval st a1) <=? (aeval st a2)
+  | <{a1 > a2}> => negb ((aeval st a1) <=? (aeval st a2))
+  | <{~b1}> => negb (beval st b1)
+  | <{b1 && b2}> => andb (beval st b1) (beval st b2)
   end.
 
 (** We specialize our notation for total maps to the specific case of
